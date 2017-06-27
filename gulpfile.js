@@ -26,11 +26,13 @@ var config = {
         },
 };
 
+// Cleanup folders before generating files
 function cleanup(folderpath){
     return gulp.src(folderpath, {read : false})
         .pipe(clean());
 }
 
+// Refresh browser
 gulp.task('browser-sync', ['connect'], function() {
     browserSync.init({
         proxy: config.baseurl + ":" + config.port + "/"
@@ -38,6 +40,7 @@ gulp.task('browser-sync', ['connect'], function() {
 });
 
 
+//Launch browser
 gulp.task('connect', ['inject'], function (){
      connect.server({
         root: ['dist'],
@@ -46,7 +49,7 @@ gulp.task('connect', ['inject'], function (){
     });
 });
 
-
+//inject js files and css files in html dynamically
 gulp.task('inject', ['html'], function(){
     var sources = gulp.src([config.injectConfig.destAllJs, config.injectConfig.destAllCss], {read: false});
     return gulp.src(config.injectConfig.destAllHtml)
@@ -55,6 +58,7 @@ gulp.task('inject', ['html'], function(){
 
 });
 
+//copy html file to destination folder
 gulp.task('html', ['js'], function(){
     cleanup(config.injectConfig.destAllHtml);
 
@@ -62,6 +66,7 @@ gulp.task('html', ['js'], function(){
     .pipe(gulp.dest(config.path.dist))
 });
 
+// read JS file, bundle it into one file, convert into JS file in ES5 format and copy to destination
 gulp.task('js', [], function() {
     var stream = browserify(config.path.mainJs)
         .transform("babelify", {presets: ["es2015", "react"]})
@@ -74,6 +79,7 @@ gulp.task('js', [], function() {
     return stream;
 });
           
+//Watch JS and html file changes and rerun task when changed and refresh browser
 gulp.task('watch', ['browser-sync'], function(){
     var watcher = gulp.watch(config.path.js, ['js']).on('change', browserSync.reload);        
     var htmlWatcher = gulp.watch(config.path.html, ['inject']).on('change', browserSync.reload);
@@ -86,5 +92,6 @@ gulp.task('watch', ['browser-sync'], function(){
       console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
     })
 });
+
 
 gulp.task('default', ['watch']);
